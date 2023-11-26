@@ -36,13 +36,17 @@ module Capistrano
             desc "Precompile assets locally and then rsync to app servers"
             task :precompile, :only => { :primary => true }, :on_no_matching_servers => :continue do
 
-              local_manifest_path = run_locally "ls #{assets_dir}/manifest*"
-              local_manifest_path.strip!
+              # manifests sycning breaks because we have both js and js.gz
+              # they live in the same dir, so they were already synced
+              # so there is no need to sync them separately
+              # 
+              # local_manifest_path = run_locally "ls #{assets_dir}/manifest*"
+              # local_manifest_path.strip!
 
               servers = find_servers :roles => assets_role, :except => { :no_release => true }
               servers.each do |srvr|
                 run_locally "#{fetch(:rsync_cmd)} ./#{fetch(:assets_dir)}/ #{user}@#{srvr}:#{release_path}/#{fetch(:assets_dir)}/"
-                run_locally "#{fetch(:rsync_cmd)} ./#{local_manifest_path} #{user}@#{srvr}:#{release_path}/assets_manifest#{File.extname(local_manifest_path)}"
+                # run_locally "#{fetch(:rsync_cmd)} ./#{local_manifest_path} #{user}@#{srvr}:#{release_path}/assets_manifest#{File.extname(local_manifest_path)}"
               end
             end
           end
